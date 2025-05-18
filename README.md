@@ -7,7 +7,7 @@ A Python utility that scrapes web pages using Playwright and generates a folder 
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.12
 - Pipenv
 
 ## Installation
@@ -21,6 +21,22 @@ A Python utility that scrapes web pages using Playwright and generates a folder 
    ```
    pipenv run python -m playwright install
    ```
+
+### Updating to Python 3.12
+
+If you need to update an existing installation to Python 3.12:
+
+1. Make sure Python 3.12 is installed on your system
+2. Run the update script:
+   ```
+   ./update_to_python312.sh
+   ```
+   
+This script will:
+- Remove the current virtual environment
+- Create a new one with Python 3.12
+- Install all dependencies
+- Install Playwright browsers
 
 ## Usage
 
