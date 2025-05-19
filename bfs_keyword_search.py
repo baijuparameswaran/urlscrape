@@ -26,7 +26,14 @@ async def scrape_and_search(url, keyword, output_dir=None):
         output_dir (str, optional): Directory to save results
     
     Returns:
-        dict: Results of the search
+        dict: Results of the search including:
+            - output_dir: Directory where results are saved
+            - level_hrefs: Dictionary mapping levels to lists of hrefs
+            - keyword_results: Complete search results
+            - highest_level: DOM level with highest keyword match ratio
+            - highest_level_urls: List of matching URLs at the highest level
+            - highest_ratio: The ratio value of keyword matches at the highest level
+            - best_selected_urls: List of best matching URLs (identical to highest_level_urls, provided for clarity)
     """
     # Create output directory
     if not output_dir:
@@ -70,10 +77,19 @@ async def scrape_and_search(url, keyword, output_dir=None):
     keyword_html_path = os.path.join(output_dir, f"keyword_search_{keyword}.html")
     save_keyword_results(keyword_results, keyword, url, keyword_txt_path, keyword_html_path)
     
+    # Get the highest level and its URLs (URLs with highest keyword ratio)
+    target_level = keyword_results.get('target_level') if keyword_results else None
+    best_matches = keyword_results.get('best_matches', []) if keyword_results else []
+    highest_ratio = keyword_results.get('highest_ratio', 0) if keyword_results else 0
+    
     return {
         'output_dir': output_dir,
         'level_hrefs': level_hrefs,
-        'keyword_results': keyword_results
+        'keyword_results': keyword_results,
+        'highest_level': target_level,
+        'highest_level_urls': best_matches,
+        'highest_ratio': highest_ratio,
+        'best_selected_urls': best_matches  # Explicit name for clarity
     }
 
 async def get_dom_snapshot(url):
@@ -887,6 +903,26 @@ async def main():
     
     results = await scrape_and_search(url, keyword, output_dir)
     print(f"Process complete! Results saved to {results['output_dir']}")
+    
+    # Display information about the highest level
+    if results.get('highest_level') is not None:
+        level = results['highest_level']
+        matches = len(results['best_selected_urls'])
+        ratio = results['highest_ratio'] * 100
+        
+        print(f"\nBest match results found at DOM level {level}:")
+        print(f"  - {matches} matching URLs with keyword '{keyword}'")
+        print(f"  - Match ratio: {ratio:.2f}%")
+        
+        if matches > 0:
+            print("\nTop matching URLs:")
+            for i, match in enumerate(results['best_selected_urls'][:5], 1):
+                print(f"  {i}. {match['url']}")
+            
+            if len(results['best_selected_urls']) > 5:
+                print(f"  ... and {len(results['best_selected_urls']) - 5} more matches")
+    else:
+        print(f"\nNo matches found for keyword '{keyword}'")
 
 if __name__ == "__main__":
     asyncio.run(main())
